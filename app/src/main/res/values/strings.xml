@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">CheckIn</string>
+    <string name="app_name">Roster</string>
+    <string name="dialog_person_email_suffix">@students.kennesaw.edu</string>
 </resources>

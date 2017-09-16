@@ -10,8 +10,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ScanCardActivity"
-            android:launchMode="singleInstance">
+        <activity android:name=".RosterActivity"
+                  android:launchMode="singleInstance"
+                  android:theme="@style/AppTheme">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,5 +25,9 @@
             <meta-data android:name="android.nfc.action.TECH_DISCOVERED"
                        android:resource="@xml/nfc_tech" />
         </activity>
+        <activity android:name=".EventActivity"
+                  android:label="Event"
+                  android:parentActivityName=".RosterActivity"
+                  android:theme="@style/AppTheme"/>
     </application>
 </manifest>
