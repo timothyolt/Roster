@@ -84,11 +84,11 @@ class PersonAdapter(private var shallow: Query, private var deep: DatabaseRefere
         private val name: TextView? = itemView?.findViewById(R.id.person_name_text)
         private val netid: TextView? = itemView?.findViewById(R.id.person_netid_text)
 
-        var deepQuery: Query? = null
+        private var deep: Query? = null
 
-        fun bind(deepQuery: Query?) {
-            this.deepQuery = deepQuery
-            deepQuery?.addValueEventListener(this)
+        fun bind(deep: Query?) {
+            this.deep = deep
+            deep?.addValueEventListener(this)
         }
 
         override fun onCancelled(error: DatabaseError?) {
@@ -102,7 +102,7 @@ class PersonAdapter(private var shallow: Query, private var deep: DatabaseRefere
         }
 
         fun recycle() {
-            deepQuery?.removeEventListener(this)
+            deep?.removeEventListener(this)
         }
     }
 }
