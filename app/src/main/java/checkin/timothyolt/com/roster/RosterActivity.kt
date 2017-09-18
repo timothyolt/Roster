@@ -17,7 +17,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
-import android.widget.Toast
 import com.google.firebase.crash.FirebaseCrash
 import com.google.firebase.database.*
 import java.util.*
@@ -33,7 +32,6 @@ class RosterActivity : Activity() {
     private var adapter: PersonAdapter? = null
 
     private fun startEventEditActivity() = startActivity(EventActivity.createIntent(this))
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +64,7 @@ class RosterActivity : Activity() {
                     event = data?.getValue(Event::class.java)
                     eventCreate?.visibility = View.GONE
                     actionBar?.subtitle = event?.name ?: "(no event name)"
+                    actionBar?.title = "${event?.attendeeCount ?: "No"} attendees"
                 } else {
                     startEventEditActivity()
                     eventCreate?.visibility = View.VISIBLE
@@ -140,8 +139,6 @@ class RosterActivity : Activity() {
             override fun onDataChange(data: DataSnapshot?) {
                 //TODO check person validity and perform an update if necessary
                 val person = data?.getValue(Person::class.java) ?: return
-                Toast.makeText(this@RosterActivity, "Checked in ${person.firstName} ${person.lastName}\n" +
-                        "${person.netId}@students.kennesaw.edu", Toast.LENGTH_LONG).show()
             }
         })
     }
