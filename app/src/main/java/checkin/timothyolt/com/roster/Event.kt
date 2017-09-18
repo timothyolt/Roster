@@ -9,7 +9,7 @@ data class Event (
         @Suppress("MemberVisibilityCanPrivate") // Used via reflection with Firebase, must be public
         var dateString: String? = null,
         var name: String? = null,
-        var attendees: HashMap<String, Boolean>? = null,
+        var attendees: HashMap<String, String>? = null,
         var attendeeCount: Int? = null
 ) {
     constructor(name: String?) : this(Calendar.getInstance(), name)
@@ -20,24 +20,35 @@ data class Event (
 
     companion object {
         private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
 
-        fun parse(string: String?): Calendar? {
+        fun parseDate(string: String?): Calendar? {
             if (string == null) return null
             val cal = Calendar.getInstance()
             cal.time = dateFormat.parse(string)
             return cal
         }
 
-        fun format(calendar: Calendar?): String? =
+        fun parseTime(string: String?): Calendar? {
+            if (string == null) return null
+            val cal = Calendar.getInstance()
+            cal.time = timeFormat.parse(string)
+            return cal
+        }
+
+        fun formatDate(calendar: Calendar?): String? =
                 if (calendar == null) null else dateFormat.format(calendar.time)
+
+        fun formatTime(calendar: Calendar?): String? =
+                if (calendar == null) null else timeFormat.format(calendar.time)
     }
 
     var date: Calendar?
         @Exclude
-        get () = parse(dateString)
+        get () = parseDate(dateString)
         @Exclude
         set(value) {
-            dateString = format(value)
+            dateString = formatDate(value)
         }
 
 }

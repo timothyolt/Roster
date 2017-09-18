@@ -18,7 +18,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
-import com.firebase.ui.database.FirebaseRecyclerAdapter
 import com.google.firebase.crash.FirebaseCrash
 import com.google.firebase.database.*
 import java.util.*
@@ -31,7 +30,7 @@ class RosterActivity : Activity() {
     private var event: Event? = null
     private var eventRef: DatabaseReference? = null
     private var eventListener: ValueEventListener? = null
-    private var adapter: FirebaseRecyclerAdapter<Person, PersonView>? = null
+    private var adapter: PersonAdapter? = null
 
     private fun startEventEditActivity() = startActivity(EventActivity.createIntent(this))
 
@@ -45,19 +44,14 @@ class RosterActivity : Activity() {
         eventCreate?.setOnClickListener { startEventEditActivity() }
 
         eventRef = FirebaseDatabase.getInstance().reference
-                .child("events").child(Event.format(Calendar.getInstance()))
+                .child("events").child(Event.formatDate(Calendar.getInstance()))
 
         recycler = findViewById(R.id.roster_recycler)
-        recycler?.layoutManager = LinearLayoutManager(this)
-        adapter = object : FirebaseRecyclerAdapter<Person, PersonView>(
-                Person::class.java,
-                R.layout.view_person,
-                PersonView::class.java,
-                FirebaseDatabase.getInstance().reference.child("people")) {
-            override fun populateViewHolder(view: PersonView?, model: Person?, position: Int) {
-                view?.bind(model)
-            }
-        }
+        val layoutManager = LinearLayoutManager(this)
+        layoutManager.reverseLayout = true
+        layoutManager.stackFromEnd = true
+        recycler?.layoutManager = layoutManager
+        adapter = PersonAdapter(eventRef?.child("attendees")?.orderByValue()!!, FirebaseDatabase.getInstance().reference.child("people")!!)
         recycler?.adapter = adapter
 
         eventListener = eventRef!!.addValueEventListener(object : ValueEventListener {
@@ -123,7 +117,9 @@ class RosterActivity : Activity() {
                         !data.getValue(Card::class.java)?.personId.isNullOrEmpty()) {
                     val personId = data.getValue(Card::class.java)?.personId!!
                     showPersonInfo(personId)
-                    if (event?.dateString != null) db.child("events").child(event?.dateString).child("attendees").child(personId).setValue(true)
+                    if (event?.dateString != null)
+                        db.child("events").child(event?.dateString).child("attendees").child(personId)
+                                .setValue(Event.formatTime(Calendar.getInstance()))
                     return
                 }
                 db.child("cards").child(card.id).setValue(card)
@@ -193,7 +189,8 @@ class RosterActivity : Activity() {
             db.child("people").child(person.netId).setValue(person)
             db.child("cards").child(cardId).child("personId").setValue(person.netId)
             if (event?.dateString != null)
-                db.child("events").child(event?.dateString).child("attendees").child(person.netId).setValue(true)
+                db.child("events").child(event?.dateString).child("attendees").child(person.netId)
+                        .setValue(Event.formatTime(Calendar.getInstance()))
 
             alert.dismiss()
         }

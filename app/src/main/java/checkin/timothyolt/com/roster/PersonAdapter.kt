@@ -1,79 +1,108 @@
 package checkin.timothyolt.com.roster
 
 import android.support.v7.widget.RecyclerView
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import com.google.firebase.crash.FirebaseCrash
 import com.google.firebase.database.*
-import org.jetbrains.annotations.NotNull
 
-class PersonAdapter : RecyclerView.Adapter<PersonAdapter.PersonView>(), ValueEventListener, ChildEventListener {
+//TODO does not take into account false keys
+class PersonAdapter(private var shallow: Query, private var deep: DatabaseReference) :
+        RecyclerView.Adapter<PersonAdapter.PersonView>(), /*ValueEventListener,*/ ChildEventListener {
 
-    private val people: ArrayList<Person> = ArrayList(0)
-    private val index: HashMap<String, Int> = HashMap()
+    private val people: ArrayList<String> = ArrayList(0)
+    private fun indexOfFirst(key: String) : Int = people.indexOfFirst { it == key }
 
-    private var shallowQueryBehind: Query? = null
-    var shallowQuery: Query?
-        get() = shallowQueryBehind
-        set(@NotNull value) {
-            assert(value != null)
-            shallowQueryBehind?.removeEventListener(this as ChildEventListener)
-            people.clear()
-            index.clear()
-            notifyDataSetChanged()
-            value?.addListenerForSingleValueEvent(this)
-            value?.addChildEventListener(this)
-            //shallowQueryBehind = value.orderByKey()
-        }
-
-    override fun onDataChange(p0: DataSnapshot?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    init {
+        shallow.addChildEventListener(this)
+        notifyDataSetChanged()
     }
 
-    override fun onCancelled(p0: DatabaseError?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun update(shallow: Query, deep: DatabaseReference) {
+        this.shallow.removeEventListener(this as ChildEventListener)
+        people.clear()
+        this.shallow = shallow
+        this.deep = deep
+        shallow.addChildEventListener(this)
+        notifyDataSetChanged()
     }
 
-    override fun onChildMoved(p0: DataSnapshot?, p1: String?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun cleanup() {
+        this.shallow.removeEventListener(this as ChildEventListener)
     }
 
-    override fun onChildChanged(p0: DataSnapshot?, p1: String?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun onCancelled(error: DatabaseError?) {
+        FirebaseCrash.report(error?.toException())
     }
 
-    override fun onChildAdded(p0: DataSnapshot?, p1: String?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun onChildMoved(snapshot: DataSnapshot?, previousChildKey: String?) {
+        val personId = snapshot?.key ?: return
+        val oldIndex = indexOfFirst(personId)
+        people.removeAt(oldIndex)
+        val index = if (previousChildKey == null) 0 else indexOfFirst(previousChildKey) + 1
+        people.add(index, personId)
+        notifyItemMoved(oldIndex, index)
     }
 
-    override fun onChildRemoved(p0: DataSnapshot?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun onChildChanged(snapshot: DataSnapshot?, previousChildKey: String?) {
+        val index = if (previousChildKey == null) 0 else indexOfFirst(previousChildKey) + 1
+        val personId = snapshot?.key ?: return
+        people[index] = personId
+        notifyItemChanged(index)
     }
 
-    override fun getItemCount(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun onChildAdded(snapshot: DataSnapshot?, previousChildKey: String?) {
+        val personId = snapshot?.key ?: return
+        val index = if (previousChildKey == null) 0 else indexOfFirst(previousChildKey) + 1
+        people.add(index, personId)
+        notifyItemInserted(index)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): PersonView {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun onChildRemoved(snapshot: DataSnapshot?) {
+        val personId = snapshot?.key ?: return
+        val oldIndex = indexOfFirst(personId)
+        people.removeAt(oldIndex)
+        notifyItemRemoved(oldIndex)
     }
+
+    override fun getItemCount(): Int = people.size
+
+    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): PersonView =
+            PersonView(LayoutInflater.from(parent!!.context).inflate(R.layout.view_person, parent, false))
 
     override fun onBindViewHolder(holder: PersonView?, position: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        holder?.bind(deep.child(people[position]))
     }
 
     override fun onViewRecycled(holder: PersonView?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        holder?.recycle()
     }
 
-    class PersonView(itemView: View?) : RecyclerView.ViewHolder(itemView) {
+    class PersonView(itemView: View?) : RecyclerView.ViewHolder(itemView), ValueEventListener {
         private val name: TextView? = itemView?.findViewById(R.id.person_name_text)
         private val netid: TextView? = itemView?.findViewById(R.id.person_netid_text)
 
-        fun bind(person: Person?) {
+        var deepQuery: Query? = null
+
+        fun bind(deepQuery: Query?) {
+            this.deepQuery = deepQuery
+            deepQuery?.addValueEventListener(this)
+        }
+
+        override fun onCancelled(error: DatabaseError?) {
+            FirebaseCrash.report(error?.toException())
+        }
+
+        override fun onDataChange(snapshot: DataSnapshot?) {
+            val person = snapshot?.getValue(Person::class.java)
             name?.text = "${person?.firstName} ${person?.lastName}"
             netid?.text = person?.netId
         }
+
+        fun recycle() {
+            deepQuery?.removeEventListener(this)
+        }
     }
 }
-

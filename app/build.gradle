@@ -33,7 +33,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     compile 'com.android.support:design:26.0.2'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.firebaseui:firebase-ui-database:2.3.0'
     //compile "org.jetbrains.kotlin:kotlin-reflect:', include: ['*.jar']"
 }
 
