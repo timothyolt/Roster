@@ -122,7 +122,7 @@ class RosterActivity : Activity() {
                     return
                 }
                 db.child("cards").child(card.id).setValue(card)
-                getPersonInfo(card.id!!)
+                startActivity(PersonActivity.createIntent(this@RosterActivity, card.id!!, event!!.dateString!!))
             }
         })
     }
@@ -141,55 +141,5 @@ class RosterActivity : Activity() {
                 val person = data?.getValue(Person::class.java) ?: return
             }
         })
-    }
-
-    @SuppressLint("InflateParams")
-    private fun getPersonInfo(cardId: String) {
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_person, null)
-        val alert = AlertDialog.Builder(this)
-                .setView(view)
-                .setPositiveButton("submit", null)
-                .setNegativeButton("cancel", null)
-                .show()
-        alert.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val firstNameLayout = view.findViewById<TextInputLayout>(R.id.person_first_name_layout)
-            val firstNameText = view.findViewById<TextInputEditText>(R.id.person_first_name_text)
-            val lastNameLayout = view.findViewById<TextInputLayout>(R.id.person_last_name_layout)
-            val lastNameText = view.findViewById<TextInputEditText>(R.id.person_last_name_text)
-            val netIdLayout = view.findViewById<TextInputLayout>(R.id.person_netid_layout)
-            val netIdText = view.findViewById<TextInputEditText>(R.id.person_netid_text)
-
-            val firstNameMissing = firstNameText.text.isBlank()
-            val lastNameMissing = lastNameText.text.isBlank()
-            val netIdMissing = netIdText.text.isBlank()
-            val netIdMalformed = netIdMissing || Regex("[@.#\$\\[\\]]").containsMatchIn(netIdText.text)
-
-            firstNameLayout.error = if (firstNameMissing) "required" else ""
-            firstNameLayout.isErrorEnabled = firstNameMissing
-            lastNameLayout.error = if (lastNameMissing) "required" else ""
-            lastNameLayout.isErrorEnabled = lastNameMissing
-            netIdLayout.error = when {
-                netIdMissing -> "required"
-                netIdMalformed -> "without @students.kennesaw.edu"
-                else -> ""
-            }
-            netIdLayout.isErrorEnabled = netIdMalformed
-
-            if (firstNameMissing || lastNameMissing || netIdMalformed) return@setOnClickListener
-
-            val person = Person(
-                    firstNameText.text.toString(),
-                    lastNameText.text.toString(),
-                    netIdText.text.toString()
-            )
-            val db = FirebaseDatabase.getInstance().reference
-            db.child("people").child(person.netId).setValue(person)
-            db.child("cards").child(cardId).child("personId").setValue(person.netId)
-            if (event?.dateString != null)
-                db.child("events").child(event?.dateString).child("attendees").child(person.netId)
-                        .setValue(Event.formatTime(Calendar.getInstance()))
-
-            alert.dismiss()
-        }
     }
 }

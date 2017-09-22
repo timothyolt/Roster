@@ -11,8 +11,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".RosterActivity"
-                  android:launchMode="singleInstance"
-                  android:theme="@style/AppTheme">
+                  android:label="Roster"
+                  android:launchMode="singleInstance">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,7 +27,9 @@
         </activity>
         <activity android:name=".EventActivity"
                   android:label="Event"
-                  android:parentActivityName=".RosterActivity"
-                  android:theme="@style/AppTheme"/>
+                  android:parentActivityName=".RosterActivity"/>
+        <activity android:name=".PersonActivity"
+                  android:label="Person"
+                  android:parentActivityName=".RosterActivity"/>
     </application>
 </manifest>

@@ -3,7 +3,7 @@ const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
 // Keeps track of the length of the 'likes' child list in a separate property.
-exports.countattendeechange = functions.database.ref('/events/{eventId}/attendees/{personId}').onWrite(event => {
+exports.countAttendeeChange = functions.database.ref('/events/{eventId}/attendees/{personId}').onWrite(event => {
   const collectionRef = event.data.ref.parent;
   const countRef = collectionRef.parent.child('attendeeCount');
 
@@ -23,7 +23,7 @@ exports.countattendeechange = functions.database.ref('/events/{eventId}/attendee
 
 // If the number of likes gets deleted, recount the number of likes
 exports.recountAttendees = functions.database.ref('/events/{eventId}/attendeeCount').onWrite(event => {
-  if (!event.data.exists()) {
+  if (!event.data.exists() && event.data.ref.parent.child('attendees').once('value').then(snapshot => snapshot.data.exists())) {
     const counterRef = event.data.ref;
     const collectionRef = counterRef.parent.child('attendees');
     
