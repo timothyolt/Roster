@@ -22,14 +22,21 @@ exports.countAttendeeChange = functions.database.ref('/events/{eventId}/attendee
 });
 
 // If the number of likes gets deleted, recount the number of likes
-exports.recountAttendees = functions.database.ref('/events/{eventId}/attendeeCount').onWrite(event => {
-  if (!event.data.exists() && event.data.ref.parent.child('attendees').once('value').then(snapshot => snapshot.data.exists())) {
+exports.recountAttendees = functions.database.ref('/events/{eventId}/attendeeCount').onDelete(event => {
+  if (!event.data.exists()) {
     const counterRef = event.data.ref;
-    const collectionRef = counterRef.parent.child('attendees');
+    const collectionRef = event.data.ref.parent.child('attendees').ref;
     
     // Return the promise from counterRef.set() so our function 
     // waits for this async event to complete before it exits.
-    return collectionRef.once('value')
-        .then(messagesData => counterRef.set(messagesData.numChildren()));
+    return collectionRef.once('value', 
+      messagesData => {
+        const messageCount = messagesData.numChildren();
+        if (messageCount > 0)
+          counterRef.set(messageCount);
+        else
+          counterRef.remove();
+        console.log('Counter recounted.');
+      });
   }
 });
