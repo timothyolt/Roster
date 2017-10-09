@@ -1,27 +1,37 @@
-package checkin.timothyolt.com.roster
+package checkin.timothyolt.com.roster.activities
 
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.MifareClassic
 import android.os.Bundle
-import android.support.design.widget.TextInputEditText
-import android.support.design.widget.TextInputLayout
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
+import checkin.timothyolt.com.roster.adapters.PersonAdapter
+import checkin.timothyolt.com.roster.R
+import checkin.timothyolt.com.roster.data.Card
+import checkin.timothyolt.com.roster.data.Event
+import checkin.timothyolt.com.roster.data.Person
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crash.FirebaseCrash
 import com.google.firebase.database.*
 import java.util.*
 
 class RosterActivity : Activity() {
+
+    companion object {
+        fun createIntent(context: Context) : Intent {
+            return Intent(context, RosterActivity::class.java)
+        }
+
+        private val REQUEST_LOGIN = 1
+    }
 
     private var eventCreate: Button? = null
     private var recycler: RecyclerView? = null
@@ -72,7 +82,18 @@ class RosterActivity : Activity() {
             }
         })
 
-        onNewIntent(intent)
+
+        if (FirebaseAuth.getInstance().currentUser == null)
+            startActivityForResult(LoginActivity.createIntent(this, intent), REQUEST_LOGIN)
+        else
+            onNewIntent(intent)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when (requestCode) {
+            REQUEST_LOGIN -> if (resultCode != RESULT_OK) finish() else onNewIntent(data)
+            else -> super.onActivityResult(requestCode, resultCode, data)
+        }
     }
 
     override fun onDestroy() {
@@ -98,11 +119,11 @@ class RosterActivity : Activity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        if (intent == null || NfcAdapter.ACTION_TECH_DISCOVERED != intent.action) return
-        val tag = intent.getParcelableExtra<Tag?>(NfcAdapter.EXTRA_TAG)
-        val mfc = if (tag == null || tag.id == null) null else MifareClassic.get(tag)
-        val card = if (tag == null || mfc == null) null else Card(tag, mfc)
-        if (card?.id == null) return
+        if (intent == null) return
+        val tag = intent.getParcelableExtra<Tag?>(NfcAdapter.EXTRA_TAG) ?: return
+        val mfc = if (tag.id == null) return else MifareClassic.get(tag) ?: return
+        val card = Card(tag, mfc)
+        if (card.id == null) return
         val db = FirebaseDatabase.getInstance().reference
         val cardRef = db.child("cards").child(card.id)
         cardRef.addListenerForSingleValueEvent(object : ValueEventListener {

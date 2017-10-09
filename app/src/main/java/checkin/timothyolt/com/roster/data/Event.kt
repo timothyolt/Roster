@@ -1,4 +1,4 @@
-package checkin.timothyolt.com.roster
+package checkin.timothyolt.com.roster.data
 
 import com.google.firebase.database.Exclude
 import java.text.SimpleDateFormat

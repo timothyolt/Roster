@@ -1,4 +1,4 @@
-package checkin.timothyolt.com.roster
+package checkin.timothyolt.com.roster.activities
 
 import android.app.Activity
 import android.content.Context
@@ -9,6 +9,8 @@ import android.support.design.widget.TextInputLayout
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import checkin.timothyolt.com.roster.R
+import checkin.timothyolt.com.roster.data.Event
 import com.google.firebase.crash.FirebaseCrash
 import com.google.firebase.database.*
 

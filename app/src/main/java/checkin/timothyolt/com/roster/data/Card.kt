@@ -1,4 +1,4 @@
-package checkin.timothyolt.com.roster
+package checkin.timothyolt.com.roster.data
 
 import android.nfc.Tag
 import android.nfc.tech.MifareClassic

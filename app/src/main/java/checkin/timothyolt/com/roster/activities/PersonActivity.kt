@@ -1,8 +1,6 @@
-package checkin.timothyolt.com.roster
+package checkin.timothyolt.com.roster.activities
 
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -10,8 +8,11 @@ import android.support.design.widget.TextInputEditText
 import android.support.design.widget.TextInputLayout
 import android.text.Editable
 import android.text.TextWatcher
+import checkin.timothyolt.com.roster.R
+import checkin.timothyolt.com.roster.data.Event
+import checkin.timothyolt.com.roster.data.Person
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
-import org.w3c.dom.Text
 import java.util.*
 
 class PersonActivity : Activity() {

@@ -1,4 +1,4 @@
-package checkin.timothyolt.com.roster
+package checkin.timothyolt.com.roster.data
 
 data class Person (
         var firstName: String? = null,

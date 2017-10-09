@@ -10,7 +10,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".RosterActivity"
+        <activity android:name=".activities.RosterActivity"
                   android:label="Roster"
                   android:launchMode="singleInstance">
 
@@ -25,11 +25,13 @@
             <meta-data android:name="android.nfc.action.TECH_DISCOVERED"
                        android:resource="@xml/nfc_tech" />
         </activity>
-        <activity android:name=".EventActivity"
+        <activity android:name=".activities.EventActivity"
                   android:label="Event"
-                  android:parentActivityName=".RosterActivity"/>
-        <activity android:name=".PersonActivity"
+                  android:parentActivityName=".activities.RosterActivity"/>
+        <activity android:name=".activities.PersonActivity"
                   android:label="Person"
-                  android:parentActivityName=".RosterActivity"/>
+                  android:parentActivityName=".activities.RosterActivity"/>
+        <activity android:name=".activities.LoginActivity"
+                  android:label="Login"/>
     </application>
 </manifest>

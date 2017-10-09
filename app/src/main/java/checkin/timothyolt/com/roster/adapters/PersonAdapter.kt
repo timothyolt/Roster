@@ -1,10 +1,12 @@
-package checkin.timothyolt.com.roster
+package checkin.timothyolt.com.roster.adapters
 
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import checkin.timothyolt.com.roster.R
+import checkin.timothyolt.com.roster.data.Person
 import com.google.firebase.crash.FirebaseCrash
 import com.google.firebase.database.*
 
