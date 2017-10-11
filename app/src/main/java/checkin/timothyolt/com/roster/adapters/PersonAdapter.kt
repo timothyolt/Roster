@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import checkin.timothyolt.com.roster.R
 import checkin.timothyolt.com.roster.data.Person
@@ -12,7 +13,7 @@ import com.google.firebase.database.*
 
 //TODO does not take into account false keys
 class PersonAdapter(private var shallow: Query, private var deep: DatabaseReference) :
-        RecyclerView.Adapter<PersonAdapter.PersonView>(), /*ValueEventListener,*/ ChildEventListener {
+        RecyclerView.Adapter<PersonAdapter.PersonView>(), ChildEventListener {
 
     private val people: ArrayList<String> = ArrayList(0)
     private fun indexOfFirst(key: String) : Int = people.indexOfFirst { it == key }
@@ -71,8 +72,7 @@ class PersonAdapter(private var shallow: Query, private var deep: DatabaseRefere
 
     override fun getItemCount(): Int = people.size
 
-    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): PersonView =
-            PersonView(LayoutInflater.from(parent!!.context).inflate(R.layout.view_person, parent, false))
+    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): PersonView = PersonView(this, parent)
 
     override fun onBindViewHolder(holder: PersonView?, position: Int) {
         holder?.bind(deep.child(people[position]))
@@ -82,11 +82,21 @@ class PersonAdapter(private var shallow: Query, private var deep: DatabaseRefere
         holder?.recycle()
     }
 
-    class PersonView(itemView: View?) : RecyclerView.ViewHolder(itemView), ValueEventListener {
+    var onClickListener: (Person?) -> Unit = {}
+
+    class PersonView(val adapter: PersonAdapter, parent: ViewGroup?) :
+            RecyclerView.ViewHolder(LayoutInflater.from(parent!!.context)
+                            .inflate(R.layout.view_person, parent, false)),
+            ValueEventListener {
         private val name: TextView? = itemView?.findViewById(R.id.person_name_text)
         private val netid: TextView? = itemView?.findViewById(R.id.person_netid_text)
+        private val alert: ImageView? = itemView?.findViewById(R.id.person_alert)
+        init {
+            itemView.setOnClickListener { adapter.onClickListener(person) }
+        }
 
         private var deep: Query? = null
+        private var person: Person? = null
 
         fun bind(deep: Query?) {
             this.deep = deep
@@ -98,9 +108,10 @@ class PersonAdapter(private var shallow: Query, private var deep: DatabaseRefere
         }
 
         override fun onDataChange(snapshot: DataSnapshot?) {
-            val person = snapshot?.getValue(Person::class.java)
+            person = snapshot?.getValue(Person::class.java)
             name?.text = "${person?.firstName} ${person?.lastName}"
             netid?.text = person?.netId
+            alert?.visibility = if (person?.tempDiscordId == null) View.GONE else View.VISIBLE
         }
 
         fun recycle() {

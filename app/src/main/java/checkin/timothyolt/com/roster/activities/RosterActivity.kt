@@ -60,6 +60,9 @@ class RosterActivity : Activity() {
         layoutManager.stackFromEnd = true
         recycler?.layoutManager = layoutManager
         adapter = PersonAdapter(eventRef?.child("attendees")?.orderByValue()!!, FirebaseDatabase.getInstance().reference.child("people")!!)
+        adapter?.onClickListener = {person ->
+            startActivity(PersonActivity.createIntent(this, person?.netId))
+        }
         recycler?.adapter = adapter
 
         eventListener = eventRef!!.addValueEventListener(object : ValueEventListener {
@@ -81,7 +84,6 @@ class RosterActivity : Activity() {
                 }
             }
         })
-
 
         if (FirebaseAuth.getInstance().currentUser == null)
             startActivityForResult(LoginActivity.createIntent(this, intent), REQUEST_LOGIN)
@@ -136,7 +138,7 @@ class RosterActivity : Activity() {
                 if (data != null && data.exists() &&
                         !data.getValue(Card::class.java)?.personId.isNullOrEmpty()) {
                     val personId = data.getValue(Card::class.java)?.personId!!
-                    showPersonInfo(personId)
+                    checkPerson(card.id!!, event!!.dateString!!, personId)
                     if (event?.dateString != null)
                         db.child("events").child(event?.dateString).child("attendees").child(personId)
                                 .setValue(Event.formatTime(Calendar.getInstance()))
@@ -148,7 +150,7 @@ class RosterActivity : Activity() {
         })
     }
 
-    private fun showPersonInfo(personId: String) {
+    private fun checkPerson(cardId: String, eventId: String, personId: String) {
         val personRef = FirebaseDatabase.getInstance().reference
                 .child("people").child(personId)
         personRef.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -159,7 +161,9 @@ class RosterActivity : Activity() {
 
             override fun onDataChange(data: DataSnapshot?) {
                 //TODO check person validity and perform an update if necessary
-                val person = data?.getValue(Person::class.java) ?: return
+                val person = data?.getValue(Person::class.java)
+                if (person == null)
+                    startActivity(PersonActivity.createIntent(this@RosterActivity, cardId, eventId))
             }
         })
     }
