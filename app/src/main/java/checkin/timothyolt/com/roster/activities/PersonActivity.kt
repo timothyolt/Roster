@@ -152,17 +152,15 @@ class PersonActivity : Activity() {
     }
 
     private fun checkNetid() : Boolean {
-        fun netIdMissing() = netIdText?.text?.isBlank() ?: true
-        fun netIdMalformed() = Regex("[@.#\$\\[\\]]").containsMatchIn(netIdText?.text ?: "")
-        while (netIdMalformed())
-            netIdText?.setText(netIdText?.text?.substring((netIdText?.text?.length ?: 0) - 1))
+        val netIdMissing = netIdText?.text?.isBlank() ?: true
+        val netIdMalformed = netIdMissing || Regex("[@.#\$\\[\\]]").containsMatchIn(netIdText?.text ?: "")
         netIdLayout?.error = when {
-            netIdMissing() -> "required"
-            netIdMalformed() -> "without @students.kennesaw.edu"
+            netIdMissing -> "required"
+            netIdMalformed -> "without @students.kennesaw.edu"
             else -> ""
         }
-        netIdLayout?.isErrorEnabled = netIdMissing() || netIdMalformed()
-        return netIdMissing() || netIdMalformed()
+        netIdLayout?.isErrorEnabled = netIdMissing
+        return netIdMissing
     }
 
     override fun onPause() {

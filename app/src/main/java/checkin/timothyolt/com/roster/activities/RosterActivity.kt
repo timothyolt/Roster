@@ -65,30 +65,29 @@ class RosterActivity : Activity() {
         }
         recycler?.adapter = adapter
 
-        eventListener = eventRef!!.addValueEventListener(object : ValueEventListener {
-            override fun onCancelled(err: DatabaseError?) {
-                val ex = err?.toException()
-                if (ex != null) FirebaseCrash.report(ex)
-            }
-
-            override fun onDataChange(data: DataSnapshot?) {
-                val dataExists = data?.exists() == true
-                if (dataExists) {
-                    event = data?.getValue(Event::class.java)
-                    eventCreate?.visibility = View.GONE
-                    actionBar?.subtitle = event?.name ?: "(no event name)"
-                    actionBar?.title = "${event?.attendeeCount ?: "No"} attendees"
-                } else {
-                    startEventEditActivity()
-                    eventCreate?.visibility = View.VISIBLE
-                }
-            }
-        })
-
         if (FirebaseAuth.getInstance().currentUser == null)
             startActivityForResult(LoginActivity.createIntent(this, intent), REQUEST_LOGIN)
         else
-            onNewIntent(intent)
+            eventListener = eventRef!!.addValueEventListener(object : ValueEventListener {
+                override fun onCancelled(err: DatabaseError?) {
+                    val ex = err?.toException()
+                    if (ex != null) FirebaseCrash.report(ex)
+                }
+
+                override fun onDataChange(data: DataSnapshot?) {
+                    val dataExists = data?.exists() == true
+                    if (dataExists) {
+                        event = data?.getValue(Event::class.java)
+                        eventCreate?.visibility = View.GONE
+                        actionBar?.subtitle = event?.name ?: "(no event name)"
+                        actionBar?.title = "${event?.attendeeCount ?: "No"} attendees"
+                        onNewIntent(intent)
+                    } else {
+                        startEventEditActivity()
+                        eventCreate?.visibility = View.VISIBLE
+                    }
+                }
+            })
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
